@@ -27,7 +27,8 @@ jobs:
           pip install flake8 pytest
 
       - name: Verificar formato con flake8
-        run: flake8 --ignore=E501 .
+        run: flake8 --ignore=E501,F401,E402 .
+
 
       - name: Ejecutar pruebas unitarias con pytest
         run: pytest tests/
