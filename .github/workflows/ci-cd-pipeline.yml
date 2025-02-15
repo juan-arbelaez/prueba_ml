@@ -24,7 +24,7 @@ jobs:
 
       - name: Instalar dependencias mínimas para CI
         run: |
-          pip install flake8 pytest
+          pip install -r requirements.txt
 
       - name: Verificar formato con flake8
         run: flake8 --ignore=E501,F401,E402 .
