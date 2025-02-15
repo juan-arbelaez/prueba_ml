@@ -17,12 +17,13 @@ from src.training import (
     get_model,
     tune_hyperparameters,
     evaluate_model,
-    save_results
+    save_results,
 )
+
 
 @pytest.fixture
 def mock_data(tmp_path):
-    """ Crea archivos de datos preprocesados de prueba. """
+    """Crea archivos de datos preprocesados de prueba."""
     data_dir = tmp_path / "data/processed"
     os.makedirs(data_dir, exist_ok=True)
 
@@ -36,9 +37,10 @@ def mock_data(tmp_path):
 
     return str(data_dir)
 
+
 @pytest.fixture
 def mock_transformers(tmp_path):
-    """ Crea archivos pickle para el vectorizador y encoder. """
+    """Crea archivos pickle para el vectorizador y encoder."""
     data_dir = tmp_path / "data/processed"
     os.makedirs(data_dir, exist_ok=True)
 
@@ -53,6 +55,7 @@ def mock_transformers(tmp_path):
 
     return str(data_dir)
 
+
 def test_load_data(mock_data):
     """Verifica que load_data() carga correctamente los archivos CSV."""
     X, y = load_data(mock_data)
@@ -60,12 +63,14 @@ def test_load_data(mock_data):
     assert X.shape == (100, 10)  # Debe tener 100 filas y 10 columnas
     assert y.shape == (100,)  # Debe tener 100 etiquetas
 
+
 def test_load_transformers(mock_transformers):
     """Prueba que load_transformers() carga correctamente los objetos pickle."""
     vectorizer, encoder = load_transformers(mock_transformers)
 
     assert vectorizer is not None
     assert encoder is not None
+
 
 def test_get_model():
     """Prueba que get_model() devuelve los modelos correctos."""
@@ -76,6 +81,7 @@ def test_get_model():
     with pytest.raises(ValueError):
         get_model("modelo_inexistente")
 
+
 def test_tune_hyperparameters():
     """Prueba que tune_hyperparameters() devuelve un modelo optimizado."""
     X_train = np.random.rand(50, 10)
@@ -85,7 +91,10 @@ def test_tune_hyperparameters():
 
     assert isinstance(model, RandomForestClassifier)
     assert isinstance(best_params, dict)
-    assert "n_estimators" in best_params  # Verificar que tiene hiperparámetros optimizados
+    assert (
+        "n_estimators" in best_params
+    )  # Verificar que tiene hiperparámetros optimizados
+
 
 def test_evaluate_model():
     """Prueba que evaluate_model() devuelve métricas correctamente."""
@@ -102,22 +111,23 @@ def test_evaluate_model():
     assert "f1_score" in metrics
     assert isinstance(metrics["accuracy"], float)
 
+
 def test_save_results(tmp_path):
     """Prueba que save_results() guarda un archivo JSON correctamente."""
     results = {
         "model": "random_forest",
         "best_params": {"n_estimators": 100},
-        "metrics": {"accuracy": 0.85}
+        "metrics": {"accuracy": 0.85},
     }
     file_path = tmp_path / "training_results.json"
-    
+
     save_results(results, str(file_path))
-    
+
     assert os.path.exists(file_path)
 
     with open(file_path, "r") as f:
         saved_results = json.load(f)
-    
+
     assert saved_results["model"] == "random_forest"
     assert saved_results["best_params"]["n_estimators"] == 100
     assert saved_results["metrics"]["accuracy"] == 0.85

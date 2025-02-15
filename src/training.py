@@ -11,20 +11,33 @@ from scipy.stats import randint
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
-from sklearn.metrics import accuracy_score, classification_report, precision_score, recall_score, f1_score
+from sklearn.model_selection import (
+    train_test_split,
+    cross_val_score,
+    RandomizedSearchCV,
+)
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 
 # Tipado estático
 from typing import Tuple, Dict, Any
 
 # Configuración de logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Definir ruta base
 DATA_DIR = "data/processed"
 MODEL_DIR = "data/models"
 RESULTS_FILE = os.path.join(MODEL_DIR, "training_results.json")
+
 
 def load_data() -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -42,8 +55,11 @@ def load_data() -> Tuple[np.ndarray, np.ndarray]:
         y = pd.read_csv(os.path.join(DATA_DIR, "y.csv")).values.ravel()
         return X, y
     except FileNotFoundError as e:
-        logger.error(f"Error: No se encontraron los archivos de datos preprocesados: {e}")
+        logger.error(
+            f"Error: No se encontraron los archivos de datos preprocesados: {e}"
+        )
         raise
+
 
 def load_transformers() -> Tuple:
     """
@@ -65,8 +81,11 @@ def load_transformers() -> Tuple:
 
         return vectorizer, encoder
     except FileNotFoundError as e:
-        logger.error(f"Error: No se encontraron los archivos del vectorizador o encoder: {e}")
+        logger.error(
+            f"Error: No se encontraron los archivos del vectorizador o encoder: {e}"
+        )
         raise
+
 
 def get_model(model_name: str):
     """
@@ -81,14 +100,21 @@ def get_model(model_name: str):
     models = {
         "random_forest": RandomForestClassifier(random_state=42),
         "svm": SVC(probability=True, random_state=42),
-        "xgboost": XGBClassifier(use_label_encoder=False, eval_metric="logloss", random_state=42)
+        "xgboost": XGBClassifier(
+            use_label_encoder=False, eval_metric="logloss", random_state=42
+        ),
     }
 
     if model_name not in models:
-        logger.error(f"Modelo '{model_name}' no soportado. Opciones: {list(models.keys())}")
-        raise ValueError(f"Modelo '{model_name}' no es válido. Opciones: {list(models.keys())}")
+        logger.error(
+            f"Modelo '{model_name}' no soportado. Opciones: {list(models.keys())}"
+        )
+        raise ValueError(
+            f"Modelo '{model_name}' no es válido. Opciones: {list(models.keys())}"
+        )
 
     return models[model_name]
+
 
 def tune_hyperparameters(model_name: str, X_train: np.ndarray, y_train: np.ndarray):
     """
@@ -110,19 +136,19 @@ def tune_hyperparameters(model_name: str, X_train: np.ndarray, y_train: np.ndarr
             "max_depth": [None, 10, 20, 30],
             "min_samples_split": randint(2, 10),
             "min_samples_leaf": randint(1, 5),
-            "bootstrap": [True, False]
+            "bootstrap": [True, False],
         },
         "svm": {
             "C": [0.1, 1, 10, 100],
             "kernel": ["linear", "rbf", "poly"],
-            "gamma": ["scale", "auto"]
+            "gamma": ["scale", "auto"],
         },
         "xgboost": {
             "n_estimators": randint(50, 200),
             "learning_rate": [0.01, 0.1, 0.2],
             "max_depth": randint(3, 10),
-            "subsample": [0.6, 0.8, 1.0]
-        }
+            "subsample": [0.6, 0.8, 1.0],
+        },
     }
 
     base_model = get_model(model_name)
@@ -133,12 +159,13 @@ def tune_hyperparameters(model_name: str, X_train: np.ndarray, y_train: np.ndarr
         cv=3,
         scoring="accuracy",
         random_state=42,
-        n_jobs=-1
+        n_jobs=-1,
     )
 
     search.fit(X_train, y_train)
     logger.info(f"Mejores hiperparámetros encontrados: {search.best_params_}")
     return search.best_estimator_, search.best_params_
+
 
 def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, Any]:
     """
@@ -160,7 +187,9 @@ def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, A
         "precision": precision_score(y_test, y_pred, average="weighted"),
         "recall": recall_score(y_test, y_pred, average="weighted"),
         "f1_score": f1_score(y_test, y_pred, average="weighted"),
-        "classification_report": classification_report(y_test, y_pred, output_dict=True)
+        "classification_report": classification_report(
+            y_test, y_pred, output_dict=True
+        ),
     }
 
     logger.info(f"Exactitud del modelo: {metrics['accuracy']:.4f}")
@@ -169,6 +198,7 @@ def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, A
     logger.info(f"F1-score: {metrics['f1_score']:.4f}")
 
     return metrics
+
 
 def save_results(results: Dict[str, Any]):
     """
@@ -183,6 +213,7 @@ def save_results(results: Dict[str, Any]):
 
     logger.info(f"Resultados guardados en {RESULTS_FILE}")
 
+
 def main(model_name: str):
     """
     Función principal que ejecuta el pipeline de entrenamiento.
@@ -193,7 +224,9 @@ def main(model_name: str):
     try:
         X, y = load_data()
         vectorizer, encoder = load_transformers()
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
         model, best_params = tune_hyperparameters(model_name, X_train, y_train)
         metrics = evaluate_model(model, X_test, y_test)
@@ -208,6 +241,7 @@ def main(model_name: str):
 
     except Exception as e:
         logger.error(f"Error general en la ejecución: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     main("random_forest")  # Cambiar a "svm" o "xgboost" para entrenar otros modelos

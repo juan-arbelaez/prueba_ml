@@ -10,7 +10,9 @@ from scipy.sparse import csr_matrix
 from typing import List, Tuple, Dict, Any, Union
 
 # Configuración de logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Definir rutas
@@ -19,6 +21,7 @@ DATA_DIR = "data/processed"
 MODEL_PATH = os.path.join(MODEL_DIR, "model.pkl")
 VECTORIZER_PATH = os.path.join(DATA_DIR, "vectorizer.pkl")
 ENCODER_PATH = os.path.join(DATA_DIR, "encoder.pkl")
+
 
 def load_model() -> Any:
     """Carga el modelo entrenado desde un archivo pickle."""
@@ -31,6 +34,7 @@ def load_model() -> Any:
     except FileNotFoundError as e:
         logger.error(f"Error: No se encontró el archivo del modelo: {e}")
         raise
+
 
 def load_transformers() -> Tuple[Any, Any]:
     """Carga el vectorizador y el encoder desde archivos pickle."""
@@ -45,8 +49,11 @@ def load_transformers() -> Tuple[Any, Any]:
         logger.info("Vectorizador y encoder cargados correctamente.")
         return vectorizer, encoder
     except FileNotFoundError as e:
-        logger.error(f"Error: No se encontraron los archivos del vectorizador o encoder: {e}")
+        logger.error(
+            f"Error: No se encontraron los archivos del vectorizador o encoder: {e}"
+        )
         raise
+
 
 def preprocess_text(texts: List[str], vectorizer) -> csr_matrix:
     """
@@ -61,11 +68,14 @@ def preprocess_text(texts: List[str], vectorizer) -> csr_matrix:
     """
     try:
         logger.info("Vectorizando texto de entrada...")
-        X = vectorizer.transform(texts)  # Mantiene formato disperso para optimizar memoria
+        X = vectorizer.transform(
+            texts
+        )  # Mantiene formato disperso para optimizar memoria
         return X
     except Exception as e:
         logger.error(f"Error en la vectorización del texto: {e}")
         raise
+
 
 def predict(texts: List[str]) -> List[Tuple[str, str]]:
     """
@@ -84,14 +94,19 @@ def predict(texts: List[str]) -> List[Tuple[str, str]]:
         X = preprocess_text(texts, vectorizer)
 
         predictions = model.predict(X)
-        labels = encoder.inverse_transform(predictions)  # Convertir de números a etiquetas
+        labels = encoder.inverse_transform(
+            predictions
+        )  # Convertir de números a etiquetas
 
         return list(zip(texts, labels))
     except Exception as e:
         logger.error(f"Error en la predicción: {e}")
         raise
 
-def predict_from_csv(input_path: str, output_path: Union[str, None] = None) -> pd.DataFrame:
+
+def predict_from_csv(
+    input_path: str, output_path: Union[str, None] = None
+) -> pd.DataFrame:
     """
     Realiza predicciones en batch a partir de un archivo CSV y guarda los resultados.
 
@@ -126,6 +141,7 @@ def predict_from_csv(input_path: str, output_path: Union[str, None] = None) -> p
         logger.error(f"Error en la predicción en batch: {e}")
         raise
 
+
 def main():
     """
     Función principal que ejecuta la inferencia con ejemplos de prueba y batch.
@@ -155,6 +171,7 @@ def main():
 
     except Exception as e:
         logger.error(f"Error general en la ejecución: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     main()

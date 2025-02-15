@@ -18,12 +18,13 @@ from src.inferencia import (
     load_transformers,
     preprocess_text,
     predict,
-    predict_from_csv
+    predict_from_csv,
 )
+
 
 @pytest.fixture
 def mock_model(tmp_path):
-    """ Crea un modelo RandomForest de prueba y lo guarda en un archivo pickle. """
+    """Crea un modelo RandomForest de prueba y lo guarda en un archivo pickle."""
     model = RandomForestClassifier(n_estimators=10)
     X_train = np.random.rand(50, 10)
     y_train = np.random.randint(0, 2, size=(50,))
@@ -35,9 +36,10 @@ def mock_model(tmp_path):
 
     return str(model_path)
 
+
 @pytest.fixture
 def mock_transformers(tmp_path):
-    """ Crea archivos de vectorizador y encoder simulados. """
+    """Crea archivos de vectorizador y encoder simulados."""
     vectorizer = TfidfVectorizer()
     encoder = LabelEncoder()
 
@@ -55,10 +57,15 @@ def mock_transformers(tmp_path):
 
     return str(vectorizer_path), str(encoder_path)
 
+
 @pytest.fixture
 def mock_texts():
-    """ Retorna textos de prueba. """
-    return ["Great food and excellent service!", "Worst experience ever, never coming back."]
+    """Retorna textos de prueba."""
+    return [
+        "Great food and excellent service!",
+        "Worst experience ever, never coming back.",
+    ]
+
 
 def test_load_model(mock_model):
     """Verifica que `load_model()` carga el modelo correctamente."""
@@ -66,6 +73,7 @@ def test_load_model(mock_model):
     model = load_model()
     assert model is not None
     assert hasattr(model, "predict")  # Debe tener el método predict
+
 
 def test_load_transformers(mock_transformers):
     """Prueba que `load_transformers()` carga el vectorizador y el encoder correctamente."""
@@ -77,14 +85,18 @@ def test_load_transformers(mock_transformers):
     assert hasattr(vectorizer, "transform")  # Debe poder transformar texto
     assert hasattr(encoder, "inverse_transform")  # Debe poder decodificar etiquetas
 
+
 def test_preprocess_text(mock_transformers, mock_texts):
     """Verifica que `preprocess_text()` vectoriza correctamente los textos de entrada."""
     os.environ["VECTORIZER_PATH"], _ = mock_transformers
     vectorizer, _ = load_transformers()
-    
+
     X = preprocess_text(mock_texts, vectorizer)
     assert isinstance(X, csr_matrix)  # Debe ser una matriz dispersa
-    assert X.shape[0] == len(mock_texts)  # Debe tener el mismo número de filas que textos
+    assert X.shape[0] == len(
+        mock_texts
+    )  # Debe tener el mismo número de filas que textos
+
 
 def test_predict(mock_model, mock_transformers, mock_texts):
     """Prueba que `predict()` devuelve etiquetas de sentimiento correctamente."""
@@ -92,9 +104,14 @@ def test_predict(mock_model, mock_transformers, mock_texts):
     os.environ["VECTORIZER_PATH"], os.environ["ENCODER_PATH"] = mock_transformers
 
     predictions = predict(mock_texts)
-    
-    assert len(predictions) == len(mock_texts)  # La salida debe coincidir con la entrada
-    assert all(isinstance(label, str) for _, label in predictions)  # Las etiquetas deben ser strings
+
+    assert len(predictions) == len(
+        mock_texts
+    )  # La salida debe coincidir con la entrada
+    assert all(
+        isinstance(label, str) for _, label in predictions
+    )  # Las etiquetas deben ser strings
+
 
 @pytest.fixture
 def mock_csv(tmp_path):
@@ -103,6 +120,7 @@ def mock_csv(tmp_path):
     df = pd.DataFrame({"text": ["Amazing experience!", "Not good at all."]})
     df.to_csv(csv_path, index=False)
     return str(csv_path)
+
 
 def test_predict_from_csv(mock_model, mock_transformers, mock_csv, tmp_path):
     """Prueba que `predict_from_csv()` procesa correctamente un archivo CSV y guarda los resultados."""

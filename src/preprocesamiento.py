@@ -17,7 +17,9 @@ from sklearn.preprocessing import LabelEncoder
 from typing import List, Union
 
 # Configuración de logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Verificar y descargar stopwords si no están disponibles
@@ -37,12 +39,14 @@ except Exception as e:
     logger.error(f"Error al cargar el modelo de spaCy: {e}")
     raise
 
+
 def normalize_text(text: str) -> str:
-    """ Normaliza el texto eliminando tildes y caracteres especiales. """
+    """Normaliza el texto eliminando tildes y caracteres especiales."""
     return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
 
+
 def clean_text(text: str, stop_words: set[str] = STOP_WORDS) -> List[str]:
-    """ Limpia y normaliza un texto eliminando puntuación, acentos y stop words. """
+    """Limpia y normaliza un texto eliminando puntuación, acentos y stop words."""
     if not isinstance(text, str):
         logger.error("El texto de entrada no es una cadena de caracteres.")
         raise ValueError("El texto de entrada debe ser una cadena de caracteres.")
@@ -51,21 +55,40 @@ def clean_text(text: str, stop_words: set[str] = STOP_WORDS) -> List[str]:
     text = text.translate(str.maketrans("", "", string.punctuation))
 
     doc = nlp(text)
-    words = [token.lemma_ for token in doc if token.text not in stop_words and not token.is_punct]
+    words = [
+        token.lemma_
+        for token in doc
+        if token.text not in stop_words and not token.is_punct
+    ]
     return words
 
+
 def clean_word_list(words: List[str]) -> List[str]:
-    """ Limpia una lista de palabras eliminando espacios en blanco, signos de puntuación y números. """
-    return list(filter(None, map(lambda word: word.strip() if word and word not in string.punctuation and not word.isdigit() else None, words)))
+    """Limpia una lista de palabras eliminando espacios en blanco, signos de puntuación y números."""
+    return list(
+        filter(
+            None,
+            map(
+                lambda word: (
+                    word.strip()
+                    if word and word not in string.punctuation and not word.isdigit()
+                    else None
+                ),
+                words,
+            ),
+        )
+    )
+
 
 def assign_sentiment(stars: Union[int, float]) -> str:
-    """ Asigna una etiqueta de sentimiento ('negativo', 'neutro' o 'positivo') basada en las estrellas. """
+    """Asigna una etiqueta de sentimiento ('negativo', 'neutro' o 'positivo') basada en las estrellas."""
     if stars <= 2:
         return "negativo"
     elif stars == 3:
         return "neutro"
     else:
         return "positivo"
+
 
 def process_pipeline(df: pd.DataFrame) -> tuple:
     """
@@ -88,7 +111,9 @@ def process_pipeline(df: pd.DataFrame) -> tuple:
 
         # Verificar existencia de columnas
         if "text" not in df or "stars" not in df:
-            logger.error("El DataFrame no contiene las columnas necesarias ('text' y 'stars').")
+            logger.error(
+                "El DataFrame no contiene las columnas necesarias ('text' y 'stars')."
+            )
             raise KeyError("El DataFrame debe contener las columnas 'text' y 'stars'.")
 
         # Filtrar solo las columnas necesarias
@@ -115,7 +140,7 @@ def process_pipeline(df: pd.DataFrame) -> tuple:
         logger.info("Codificando etiquetas...")
         encoder = LabelEncoder()
         y = encoder.fit_transform(df["sentimiento"])
-        
+
         # Crear directorio si no existe
         os.makedirs("data/processed", exist_ok=True)
 
@@ -137,8 +162,9 @@ def process_pipeline(df: pd.DataFrame) -> tuple:
         logger.error(f"Error en el pipeline de procesamiento: {e}", exc_info=True)
         raise
 
+
 def main():
-    """ Función principal que ejecuta todo el pipeline. """
+    """Función principal que ejecuta todo el pipeline."""
     try:
         logger.info("Cargando dataset...")
         df = pd.read_csv("../data/raw/dataset.csv")
@@ -151,6 +177,7 @@ def main():
         logger.error("El archivo 'data/raw/dataset.csv' no fue encontrado.")
     except Exception as e:
         logger.error(f"Error general en la ejecución: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     main()
