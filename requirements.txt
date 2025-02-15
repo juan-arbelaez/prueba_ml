@@ -10,9 +10,9 @@ wordcloud==1.9.4
 spacy
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0.tar.gz
 xgboost==2.1.4
-transformers==4.48.3
-tensorflow==2.18.0
-tf-keras==2.18.0
+transformers
+tensorflow
+tf-keras
 pytest==8.3.4
 black
 flake8
